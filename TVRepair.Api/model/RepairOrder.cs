@@ -25,6 +25,12 @@ namespace TVRepair.Api.model
         public DateTime CreatedDate { get ;set ;}
 
         public string CustomerId { get ;set;}
+
+        public string? PaymentStatus { get; set;}
+
+        public DateTime? PaymentDate { get ;set;}
+
+        public long? PaymentAmount { get ;set;}
         
     }
 }

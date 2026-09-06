@@ -5,6 +5,7 @@ import StatusTracker from "../components/statustracker";
 import OrderPlaced from "./OrderPlaced";
 import TechnicianAccepted from "./TechnicianAccepted";
 import QuotationCustomer from "./QuotationCustomer";
+import InProgress from "./InProgress";
 
 export default function CheckStatus()
 {
@@ -87,6 +88,11 @@ export default function CheckStatus()
             { selectedorder?.status == "Quotation" && (
             <QuotationCustomer orders={selectedorder}></QuotationCustomer>
             )}
+
+            { selectedorder?.status == "InProgress" && (
+            <InProgress orders={selectedorder}></InProgress>
+            )}
+
 
 
         </div>

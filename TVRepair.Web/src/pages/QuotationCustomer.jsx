@@ -9,16 +9,14 @@ export default function QuotationCustomer ({orders})
 
         async function Pay()
         {
-            const paymentsummary = await fetch('http://localhost:5070/api/payment/GetPaymentSummary', {
+            const paymentsummary = await fetch('http://localhost:5070/api/payment/CreateCheckoutSession', {
                 method : "POST",
-                type : {
-                    type : "application/json"
-                },
                 headers : {
                   "Content-Type" : "application/json"
                 },
+                credentials : "include",
                 body : JSON.stringify ({
-                    orders
+                    RepairOrderId : orders.id
                 })
             })
 
@@ -26,6 +24,7 @@ export default function QuotationCustomer ({orders})
             {
               const response = await paymentsummary.json();
               setPaymentSummary(response)
+              window.location.href = response.url;
             }
         }
 
@@ -47,7 +46,7 @@ export default function QuotationCustomer ({orders})
             if (paymentsummary.ok)
             {
               const response = await paymentsummary.json();
-              setPaymentSummary(response)
+              window.location.href = response.url;
             }
         }
 

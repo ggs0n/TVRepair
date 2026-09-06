@@ -53,17 +53,12 @@ namespace TVRepair.Api.apicontroller
         public async Task<ActionResult> CreateCheckoutSession(
             [FromBody] GetPaymentSummaryRequest request)
         {
+            try
+            {
             var customerId =
                 User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var quotation = await (
-                from q in _context.Quotation
-                join order in _context.RepairOrder
-                    on q.RepairOrderId equals order.Id
-                where q.RepairOrderId == request.RepairOrderId
-                && order.CustomerId == customerId
-                select q
-            ).SingleOrDefaultAsync();
+            var quotation = await _context.Quotation.FirstOrDefaultAsync(q => q.RepairOrderId == request.RepairOrderId);
 
             if (quotation == null)
                 return NotFound("Quotation not found.");
@@ -72,8 +67,7 @@ namespace TVRepair.Api.apicontroller
             {
                 Mode = "payment",
 
-                SuccessUrl =
-                    "http://localhost:5173/check-status?payment=success",
+                SuccessUrl = "http://localhost:5070/api/payment/PaymentSuccess?session_id={CHECKOUT_SESSION_ID}",
 
                 CancelUrl =
                     "http://localhost:5173/payment-summary?payment=cancelled",
@@ -117,6 +111,57 @@ namespace TVRepair.Api.apicontroller
             {
                 url = session.Url
             });
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+        [HttpGet("PaymentSuccess")]
+        public async Task<IActionResult> PaymentSuccess([FromQuery(Name = "session_id")] string sessionId)
+        {
+            var service = new SessionService(_stripeclient);
+            var session = await service.GetAsync(sessionId);
+
+            if (session.PaymentStatus != "paid")
+            {
+                return Redirect(
+                    "http://localhost:5173/check-status?payment=failed"
+                );
+            }
+
+            if (!session.Metadata.TryGetValue("repairOrderId", out var idText) ||
+                !Guid.TryParse(idText, out var repairOrderId))
+            {
+                return Redirect(
+                    "http://localhost:5173/check-status?payment=invalid"
+                );
+            }
+
+            var order = await _context.RepairOrder.FirstOrDefaultAsync(x => x.Id == repairOrderId);
+
+            if (order == null)
+            {
+                return Redirect(
+                    "http://localhost:5173/check-status?payment=order-not-found"
+                );
+            }
+
+            if (session.PaymentStatus == "paid")
+            {
+                order.PaymentStatus = "Paid";
+                order.PaymentDate = DateTime.Now;
+                order.PaymentAmount = session.AmountTotal;
+                order.Status = "InProgress";
+                await _context.SaveChangesAsync();
+            }
+
+            return Redirect(
+            $"http://localhost:5173/check-status?payment=success&orderId={repairOrderId}"
+            );
         }
 
 

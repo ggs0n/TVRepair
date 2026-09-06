@@ -29,6 +29,26 @@ export default function AuthenticationContext ( {children})
         else alert("Logout failed")
     }
 
+
+    //get current user when restart page
+    useEffect(() => {
+    async function restoreUser() {
+        const response = await fetch(
+        "http://localhost:5070/api/Authentication/GetCurrentUser",
+        {
+            credentials: "include"
+        }
+        );
+
+        if (response.ok) {
+        const data = await response.json();
+        setUser(data);
+        }
+    }
+
+    restoreUser();
+    }, []);
+
     return (
         <AuthContext.Provider value={{
         user,

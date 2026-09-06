@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using TVRepair.Api.model;
 using TVRepair.Api.data;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TVRepair.Api.apicontroller
 {
@@ -114,6 +115,25 @@ namespace TVRepair.Api.apicontroller
             }
         }
 
+
+        [Authorize]
+        [HttpGet("GetCurrentUser")]
+        public async Task<ActionResult> GetCurrentUser()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return Unauthorized();
+
+            return Ok(new
+            {
+                id = user.Id,
+                email = user.Email,
+                name = user.UserName,
+                customertype = user.CustomerType,
+                area = user.PreferredArea
+            });
+        }
 
         [HttpPost("logout")]
         public async Task<ActionResult> LogoutUser ()
