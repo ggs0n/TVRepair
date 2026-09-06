@@ -1,4 +1,5 @@
 # Build file
 bin
 obj
+appsettings.json
 
