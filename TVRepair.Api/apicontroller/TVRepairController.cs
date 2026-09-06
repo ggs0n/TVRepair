@@ -1,209 +1,135 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.TagHelpers;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.Internal;
 using TVRepair.Api.data;
 using TVRepair.Api.model;
+using TVRepair.Api.services;
 
 namespace TVRepair.Api.apicontroller
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class TVRepairController : ControllerBase
     {
-        
-        public readonly TVRepairDBContext _context;
+        private readonly IRepairOrderService _repairOrderService;
 
-        public TVRepairController(TVRepairDBContext context)
+        public TVRepairController(IRepairOrderService repairOrderService)
         {
-            _context = context;
+            _repairOrderService = repairOrderService;
         }
 
         [HttpPost("AddRepairOrder")]
-        public async Task<ActionResult> AddRepairOrder([FromForm]RepairOrder request )
+        public async Task<ActionResult> AddRepairOrder(
+            [FromForm] RepairOrder request)
         {
-            try 
-            {
-                if(request==null)
-                return BadRequest();
+            await _repairOrderService.AddRepairOrderAsync(request);
 
-                request.Id = Guid.NewGuid();
-                request.CreatedDate = DateTime.Now;
-                request.Status = "OrderPlace"; //assign default value when orderplaced
-            
-                _context.RepairOrder.Add(request);
-                await _context.SaveChangesAsync();
-
-                var statushistory = new RepairOrderStatusHistory
-                {
-                    RepairOrderID = request.Id,
-                    Status = request.Status,
-                    UpdatedDate = DateTime.Now
-                };
-
-                _context.RepairOrderStatusHistory.Add(statushistory);
-                await _context.SaveChangesAsync();
-
-                return Created();
-            }
-
-            catch(Exception ex)
-            {
-                throw (ex);
-            }
-            
+            return StatusCode(StatusCodes.Status201Created);
         }
 
         [HttpGet("GetRepairOrder")]
-        public async Task<ActionResult<List<GetRepairOrderResponse>>> GetRepairOrder(string UserName)
+        public async Task<ActionResult<List<GetRepairOrderResponse>>>
+            GetRepairOrder(string UserName)
         {
-            if (UserName==null)
-            return BadRequest();
-            
-            // var repairorderlist = await _context.RepairOrder.Where(a=>a.UserName == UserName).AsNoTracking().ToListAsync();
+            if (string.IsNullOrWhiteSpace(UserName))
+            {
+                return BadRequest("User name is required.");
+            }
 
-            var repairorderlist = await _context.Database.SqlQuery<GetRepairOrderResponse>($"EXEC dbo.GetRepairOrderTechnician @UserName={UserName}").ToListAsync();
+            var repairOrders =
+                await _repairOrderService.GetRepairOrdersAsync(UserName);
 
-            if(repairorderlist==null)
-            return BadRequest();
-
-            else return Ok(repairorderlist);
+            return Ok(repairOrders);
         }
-
 
         [HttpGet("GetRepairOrderTechnician")]
-        public async Task<ActionResult<List<RepairOrder>>> GetRepairOrderTechnician (string Area,string TechnicianID)
+        public async Task<ActionResult<List<RepairOrder>>>
+            GetRepairOrderTechnician(string Area, string TechnicianID)
         {
-            try {
-            var orderlist = await _context.RepairOrder.Where
-            (x=> (x.Area==Area && x.Status == "OrderPlace") || (x.TechnicianId ==TechnicianID ))
-            .AsNoTracking().ToListAsync();
-            return Ok(orderlist);
-
-            }
-            catch (Exception ex)
+            if (string.IsNullOrWhiteSpace(Area) ||
+                string.IsNullOrWhiteSpace(TechnicianID))
             {
-                return BadRequest();
+                return BadRequest(
+                    "Area and technician ID are required.");
             }
+
+            var repairOrders = await _repairOrderService
+                .GetRepairOrdersForTechnicianAsync(Area, TechnicianID);
+
+            return Ok(repairOrders);
         }
 
-
         [HttpPost("AcceptRepairOrderTechnician")]
-        public async Task<ActionResult<List<RepairOrder>>> AcceptRepairOrderTechnician (Guid Id, string TechnicianId)
+        public async Task<ActionResult> AcceptRepairOrderTechnician(
+            Guid Id,
+            string TechnicianId)
         {
-            if (Id == null)
-            return BadRequest("Id empty");
-
-            if (TechnicianId == null)
-            return BadRequest("technician id empty");
-
-            try {
-            
-            var updateorder = _context.RepairOrder.FirstOrDefault(x=>x.Id == Id);
-
-            if(updateorder==null)
-            return BadRequest("Data is null");
-
-            updateorder.Status = "Accepted";
-            updateorder.TechnicianId = TechnicianId;
-            _context.SaveChanges();
-
-            var statushistory = new RepairOrderStatusHistory
+            if (Id == Guid.Empty)
             {
-                RepairOrderID = Id,
-                Status = updateorder.Status,
-                UpdatedDate = DateTime.Now
-            };
+                return BadRequest("ID is required.");
+            }
 
-            _context.RepairOrderStatusHistory.Add(statushistory);
-            await _context.SaveChangesAsync();
+            if (string.IsNullOrWhiteSpace(TechnicianId))
+            {
+                return BadRequest("Technician ID is required.");
+            }
+
+            var repairOrder = await _repairOrderService
+                .AcceptRepairOrderAsync(Id, TechnicianId);
+
+            if (repairOrder == null)
+            {
+                return NotFound("Repair order was not found.");
+            }
 
             return Ok(new
             {
-                id = updateorder.Id,
-                TechnicianId = updateorder.TechnicianId,
-                Status = updateorder.Status
-            }
-            );
-            }
-
-            catch (Exception ex)
-            {
-                return BadRequest();
-            }
+                id = repairOrder.Id,
+                technicianId = repairOrder.TechnicianId,
+                status = repairOrder.Status
+            });
         }
 
         [HttpPost("MatchRepairOrderTechnician")]
-        public async Task <ActionResult<List<RepairOrder>>> MatchRepairOrderTechnician ()
+        public ActionResult MatchRepairOrderTechnician()
         {
-
             return Ok();
         }
 
-
         [HttpPost("UpdateJob")]
-        public async Task <ActionResult> UpdateJob ([FromForm] UpdateJobRequest request)
+        public async Task<ActionResult> UpdateJob(
+            [FromForm] UpdateJobRequest request)
         {
-            try {
-
-                if (request==null)
-                return BadRequest();
-
-                var updatejob = _context.RepairOrder.Where(x=>x.Id == request.RepairOrderId).FirstOrDefault();
-
-                updatejob.Status = request.Status;
-                updatejob.OrderNotes = request.RepairNotes;
-
-                await _context.SaveChangesAsync();
-                return Ok(updatejob);
-            }
-            catch (Exception ex)
+            if (request.RepairOrderId == Guid.Empty)
             {
-                return BadRequest();
+                return BadRequest("Repair order ID is required.");
             }
+
+            var repairOrder =
+                await _repairOrderService.UpdateJobAsync(request);
+
+            if (repairOrder == null)
+            {
+                return NotFound("Repair order was not found.");
+            }
+
+            return Ok(repairOrder);
         }
 
         [HttpPost("SubmitQuotation")]
-        public async Task <ActionResult> SubmitQuotation (SubmitQuotationRequest request)
-        {   
-            try {
+        public async Task<ActionResult> SubmitQuotation(
+            [FromBody] SubmitQuotationRequest request)
+        {
+            var submitted =
+                await _repairOrderService.SubmitQuotationAsync(request);
 
-            var quotationlist = _context.Quotation.FirstOrDefault(x=>x.RepairOrderId == request.RepairOrderId);
-
-            if (quotationlist!=null)
-            return BadRequest();
-
-            var quotation = new Quotation
+            if (!submitted)
             {
-                RepairOrderId = request.RepairOrderId,
-                QuotationDesc = request.QuotationDesc,
-                Amount = Convert.ToInt32(request.Amount),
-                CustomerId = request.CustomerId,
-                TechnicianId = request.TechnicianId
-            };
-
-            _context.Add(quotation);
-
-            var updateorder = _context.RepairOrder.FirstOrDefault(x=>x.Id == request.RepairOrderId);
-
-            updateorder.Status = "Quotation"; 
-
-            await _context.SaveChangesAsync();
+                return BadRequest(
+                    "The repair order was not found or already has a quotation.");
+            }
 
             return Ok();
-            }
-            catch(Exception ex)
-            {
-                return BadRequest();
-            }
         }
-        
-
     }
 }

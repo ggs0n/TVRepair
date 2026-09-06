@@ -33,7 +33,11 @@ export default function CheckStatus()
         );
 
         const response = await fetch
-        (`http://localhost:5070/api/TVRepair/GetRepairOrder?${query}`);
+        (`http://localhost:5070/api/TVRepair/GetRepairOrder?${query}`,
+            {
+                credentials: "include"
+            }
+        );
 
         const data = await response.json();
 

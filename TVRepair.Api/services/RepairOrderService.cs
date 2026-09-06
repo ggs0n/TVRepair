@@ -1,0 +1,153 @@
+using Microsoft.EntityFrameworkCore;
+using TVRepair.Api.data;
+using TVRepair.Api.model;
+
+namespace TVRepair.Api.services
+{
+    public class RepairOrderService : IRepairOrderService
+    {
+        private readonly TVRepairDBContext _context;
+
+        public RepairOrderService(TVRepairDBContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<RepairOrder> AddRepairOrderAsync(
+            RepairOrder repairOrder)
+        {
+            repairOrder.Id = Guid.NewGuid();
+            repairOrder.CreatedDate = DateTime.UtcNow;
+            repairOrder.Status = "OrderPlace";
+
+            _context.RepairOrder.Add(repairOrder);
+            _context.RepairOrderStatusHistory.Add(
+                CreateStatusHistory(repairOrder.Id, repairOrder.Status));
+
+            await _context.SaveChangesAsync();
+
+            return repairOrder;
+        }
+
+        public async Task<List<GetRepairOrderResponse>> GetRepairOrdersAsync(
+            string userName)
+        {
+            return await _context.Database
+                .SqlQuery<GetRepairOrderResponse>(
+                    $"EXEC dbo.GetRepairOrderTechnician @UserName={userName}")
+                .ToListAsync();
+        }
+
+        public async Task<List<RepairOrder>> GetRepairOrdersForTechnicianAsync(
+            string area,
+            string technicianId)
+        {
+            return await _context.RepairOrder
+                .Where(order =>
+                    (order.Area == area && order.Status == "OrderPlace") ||
+                    order.TechnicianId == technicianId)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<RepairOrder?> AcceptRepairOrderAsync(
+            Guid repairOrderId,
+            string technicianId)
+        {
+            var repairOrder = await _context.RepairOrder
+                .FirstOrDefaultAsync(order => order.Id == repairOrderId);
+
+            if (repairOrder == null)
+            {
+                return null;
+            }
+
+            repairOrder.Status = "Accepted";
+            repairOrder.TechnicianId = technicianId;
+
+            _context.RepairOrderStatusHistory.Add(
+                CreateStatusHistory(repairOrder.Id, repairOrder.Status));
+
+            await _context.SaveChangesAsync();
+
+            return repairOrder;
+        }
+
+        public async Task<RepairOrder?> UpdateJobAsync(
+            UpdateJobRequest request)
+        {
+            var repairOrder = await _context.RepairOrder
+                .FirstOrDefaultAsync(
+                    order => order.Id == request.RepairOrderId);
+
+            if (repairOrder == null)
+            {
+                return null;
+            }
+
+            repairOrder.Status = request.Status;
+            repairOrder.OrderNotes = request.RepairNotes;
+
+            _context.RepairOrderStatusHistory.Add(
+                CreateStatusHistory(repairOrder.Id, repairOrder.Status));
+
+            await _context.SaveChangesAsync();
+
+            return repairOrder;
+        }
+
+        public async Task<bool> SubmitQuotationAsync(
+            SubmitQuotationRequest request)
+        {
+            var quotationExists = await _context.Quotation
+                .AnyAsync(
+                    quotation =>
+                        quotation.RepairOrderId == request.RepairOrderId);
+
+            if (quotationExists)
+            {
+                return false;
+            }
+
+            var repairOrder = await _context.RepairOrder
+                .FirstOrDefaultAsync(
+                    order => order.Id == request.RepairOrderId);
+
+            if (repairOrder == null)
+            {
+                return false;
+            }
+
+            var quotation = new Quotation
+            {
+                RepairOrderId = request.RepairOrderId,
+                QuotationDesc = request.QuotationDesc,
+                Amount = request.Amount,
+                CustomerId = request.CustomerId,
+                TechnicianId = request.TechnicianId
+            };
+
+            _context.Quotation.Add(quotation);
+
+            repairOrder.Status = "Quotation";
+            _context.RepairOrderStatusHistory.Add(
+                CreateStatusHistory(repairOrder.Id, repairOrder.Status));
+
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        private static RepairOrderStatusHistory CreateStatusHistory(
+            Guid repairOrderId,
+            string status)
+        {
+            return new RepairOrderStatusHistory
+            {
+                RepairOrderID = repairOrderId,
+                Status = status,
+                UpdatedDate = DateTime.UtcNow
+            };
+        }
+    }
+}
