@@ -37,9 +37,7 @@ export default function Quotation({order})
         {  user.customertype == "technician" && (
         <div className="m-2 p-2">
           <h1>Create Repair Quotation</h1>
-
           <h3>Diagnosis Details</h3>
-
           <p>Order Id : {order.id}</p>
 
           <form onSubmit={SubmitQuotation}>

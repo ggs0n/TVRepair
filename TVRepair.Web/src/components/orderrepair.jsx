@@ -67,9 +67,7 @@ export default function OrderRepair()
             <div className="flex justify-content-end">
                 <img src="../src/assets/tvpicturemainpage.png" width={600} height={400}></img>
             </div>
-            </div>
-
-            
+            </div>        
 
             <div className="border border-1 rounded-xl border-gray-300 p-6 shadow-lg right-side-orderform">
             <form onSubmit={SaveData}> 
@@ -114,7 +112,6 @@ export default function OrderRepair()
                 </div>
 
                 <button className="bg-green-700 py-3 text-white p-2 w-full rounded rounded-2 cursor-pointer hover:bg-green-950" type='submit'>Submit Order</button>
-
             </form>
             </div>
         </div>

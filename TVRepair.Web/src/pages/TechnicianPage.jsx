@@ -7,6 +7,8 @@ export default function TechnicianPage () {
     const [orderlist, setOrderTechnician]  = useState([])
     const [statusupdate, setStatusUpdate] = useState()
     const [quotationorder, setQuotationorder] = useState(null)
+    const [notifyCustomer, setNotifyCustomer] = useState(true);
+    const [selectedJob, setSelectedJob] = useState(null);
 
     async function GetOrderTechnician()
     {
@@ -64,15 +66,20 @@ export default function TechnicianPage () {
         
     }
 
+    async function UpdateJob()
+    {
+
+    }
+
     return (
 
     <div className="p-4 m-4">
+
+        <div className="mb-6">
             <div className="mb-4">
                 <h1 className="text-3xl font-bold">Technician Job Tracker</h1>
                 <h1>Manage your assigned repair jobs and update progress</h1>
             </div>
-
-
             <div className="grid grid-cols-3 gap-5 mb-4">
                 <div className="bg-red-200">
                      <h1>Assigned jobs</h1>
@@ -120,7 +127,11 @@ export default function TechnicianPage () {
 
                                 { order.status == "InProgress" && (
                                 <td>
-                                    <button className="bg-green-700 p-3 m-2 rounded-xl text-white" onClick={() => setQuotationorder(order)}>Update Status</button>
+                                    <button className="bg-green-700 p-3 m-2 rounded-xl text-white" onClick={() => {
+                                        setSelectedJob(order);
+                                        setStatusUpdate(order.status);
+                                        }
+                                        }>Update Status</button>
                                 </td>
                                 )} 
                             </tr>
@@ -133,6 +144,55 @@ export default function TechnicianPage () {
                     )
                     }
             </div>
+        </div>
+        
+        { selectedJob && (
+        <div>
+        <h1 className="text-3xl font-bold">Job Details</h1>
+        <div className="grid grid-cols-2 gap-5">
+                <div className="mb-4 border border-1 border-gray-300 p-4">
+                <h1>Manage your assigned repair jobs and update progress</h1>
+                
+                 <div>
+                    <h1>Customer Email : {selectedJob.id}</h1>
+                 </div>
+                 </div>
+
+                 <div className="border border-1 border-gray-300 p-4">
+                    <div className="mb-4">
+                    <h1>Update Status</h1>
+                    <select className="border border-1 border-gray-300">
+                        <option value="Completed">Complete</option>
+                        <option value="In Progress">In Progress</option>
+                    </select>
+                    </div>
+                    
+                    <div className="mb-4">
+                    <h1>Repair Notes</h1>
+                    <input type="text" className="w-100 border border-1 border-gray-300"></input>
+                    </div>
+
+                    <div className="mb-4">
+                        <h1>Upload Repair Proof</h1>
+                        <input type="file"></input>
+                    </div>
+
+                    <div>
+                    <h1>Notify Customer</h1>
+                    <input
+                    type="checkbox"
+                    checked={notifyCustomer}
+                    onChange={(event) => setNotifyCustomer(event.target.checked)}
+                    className="h-4 w-4 accent-green-600"
+                    />
+                    </div>
+
+                    <button className="bg-green-800 p-4 m-2 text-white rounded-xl" onClick={UpdateJob}>Update</button>
+                </div>
+        </div>
+        </div>
+        )}
+
     </div>
 
     ) 

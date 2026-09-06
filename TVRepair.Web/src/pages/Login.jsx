@@ -98,7 +98,6 @@ export default function Login()
 
             <div className="flex container align-items-center gap-2 col-5">
             <button className="w-full bg-green-700 rounded-xl text-white font-bold p-2" type="submit">Login</button><br/>
-            {/* <Link to="/forgotpassword" className="btn btn-primary" >Forgot Password</Link> */}
             </div>
             
             </form>
