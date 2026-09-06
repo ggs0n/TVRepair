@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Azure.Core;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.TagHelpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using TVRepair.Api.data;
@@ -142,6 +144,29 @@ namespace TVRepair.Api.apicontroller
         {
 
             return Ok();
+        }
+
+
+        [HttpPost("UpdateJob")]
+        public async Task <ActionResult> UpdateJob ([FromForm] UpdateJobRequest request)
+        {
+            try {
+
+                if (request==null)
+                return BadRequest();
+
+                var updatejob = _context.RepairOrder.Where(x=>x.Id == request.RepairOrderId).FirstOrDefault();
+
+                updatejob.Status = request.Status;
+                updatejob.OrderNotes = request.RepairNotes;
+
+                await _context.SaveChangesAsync();
+                return Ok(updatejob);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
         }
 
         [HttpPost("SubmitQuotation")]

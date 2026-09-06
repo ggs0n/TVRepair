@@ -66,15 +66,40 @@ export default function TechnicianPage () {
         
     }
 
-    async function UpdateJob()
+    async function UpdateJob(event)
     {
+        event.preventDefault();
+
+        const form = new FormData(event.currentTarget)
+        form.set("repairOrderId", selectedJob.id);
+
+        const updatejob = await fetch("http://localhost:5070/api/tvrepair/UpdateJob",{
+            method : "POST",
+            credentials : "include",
+            body : form
+        })
+
+        if (updatejob.ok)
+        {
+            const updatedOrder = await updatejob.json();
+
+            setOrderTechnician((currentOrders) =>
+                currentOrders.map((order) =>
+                order.id === updatedOrder.id
+                    ? { ...order, ...updatedOrder }
+                    : order
+                )
+            );
+
+            setSelectedJob(null);
+            alert("update success!")
+        }
 
     }
 
     return (
 
     <div className="p-4 m-4">
-
         <div className="mb-6">
             <div className="mb-4">
                 <h1 className="text-3xl font-bold">Technician Job Tracker</h1>
@@ -158,18 +183,19 @@ export default function TechnicianPage () {
                  </div>
                  </div>
 
+                 <form onSubmit={UpdateJob}>
                  <div className="border border-1 border-gray-300 p-4">
                     <div className="mb-4">
                     <h1>Update Status</h1>
-                    <select className="border border-1 border-gray-300">
-                        <option value="Completed">Complete</option>
+                    <select className="border border-1 border-gray-300" name="status">
+                        <option value="Completed" >Complete</option>
                         <option value="In Progress">In Progress</option>
                     </select>
                     </div>
                     
                     <div className="mb-4">
                     <h1>Repair Notes</h1>
-                    <input type="text" className="w-100 border border-1 border-gray-300"></input>
+                    <input type="text" name="repairnotes" className="w-100 border border-1 border-gray-300"></input>
                     </div>
 
                     <div className="mb-4">
@@ -186,9 +212,9 @@ export default function TechnicianPage () {
                     className="h-4 w-4 accent-green-600"
                     />
                     </div>
-
-                    <button className="bg-green-800 p-4 m-2 text-white rounded-xl" onClick={UpdateJob}>Update</button>
+                    <button className="bg-green-800 p-4 m-2 text-white rounded-xl">Update</button>
                 </div>
+                </form>
         </div>
         </div>
         )}
