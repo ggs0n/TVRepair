@@ -65,44 +65,74 @@ export default function TechnicianPage () {
     }
 
     return (
-    <div className="container flex flex-column border border-2">
-        <p>Technician Page</p>
-            <table className="container">
-                <thead>
-                    <th>Brand</th>
-                    <th>Area</th>
-                    <th>Username</th>
-                    <th>Status</th>
-                    <th>Order Id</th>
-                </thead>
-                {orderlist.map((order) => (
-                <tbody key={order.id}>
-                    <tr>
-                        <td>{order?.brand}</td>
-                        <td>{order?.area}</td>
-                        <td>{order?.userName}</td>
-                        <td>{order?.status}</td>
-                        <td>{order?.id}</td>
-                        { order.status == "OrderPlace" && (
-                        <td>
-                            <button className="bg-green-700 p-3 m-2 rounded-xl text-white" onClick={() => AcceptJob(order.id)}>Accept Job</button>
-                        </td>
-                        )}
 
-                        { order.status == "Accepted" && (
-                        <td>
-                            <button className="bg-green-700 p-3 m-2 rounded-xl text-white" onClick={() => setQuotationorder(order)}>Add Quotation</button>
-                        </td>
-                        )} 
-                    </tr>
-                </tbody>
-                ))}
-            </table>
+    <div className="p-4 m-4">
+            <div className="mb-4">
+                <h1 className="text-3xl font-bold">Technician Job Tracker</h1>
+                <h1>Manage your assigned repair jobs and update progress</h1>
+            </div>
 
-            { quotationorder && (
-            <Quotation order={quotationorder}></Quotation>
-            )
-            }
+
+            <div className="grid grid-cols-3 gap-5 mb-4">
+                <div className="bg-red-200">
+                     <h1>Assigned jobs</h1>
+                </div>
+
+                <div className="bg-yellow-200">
+                    <h1>In Progress</h1>
+                </div>
+
+                <div className="bg-green-300">
+                    <h1>Completed</h1>
+                </div>
+
+            </div>
+
+            <div className="flex border border-2 overflow-x-auto rounded-lg">
+                    <table className="min-w-full text-left m-2">
+                        <thead className="bg-gray-400">
+                            <th>Brand</th>
+                            <th>Area</th>
+                            <th>Username</th>
+                            <th>Status</th>
+                            <th>Order Id</th>
+                            <th>Action</th>
+                        </thead>
+                        {orderlist.map((order) => (
+                        <tbody key={order.id}>
+                            <tr>
+                                <td>{order?.brand}</td>
+                                <td>{order?.area}</td>
+                                <td>{order?.userName}</td>
+                                <td>{order?.status}</td>
+                                <td>{order?.id}</td>
+                                { order.status == "OrderPlace" && (
+                                <td>
+                                    <button className="bg-green-700 p-3 m-2 rounded-xl text-white" onClick={() => AcceptJob(order.id)}>Accept Job</button>
+                                </td>
+                                )}
+
+                                { order.status == "Accepted" && (
+                                <td>
+                                    <button className="bg-green-700 p-3 m-2 rounded-xl text-white" onClick={() => setQuotationorder(order)}>Add Quotation</button>
+                                </td>
+                                )} 
+
+                                { order.status == "InProgress" && (
+                                <td>
+                                    <button className="bg-green-700 p-3 m-2 rounded-xl text-white" onClick={() => setQuotationorder(order)}>Update Status</button>
+                                </td>
+                                )} 
+                            </tr>
+                        </tbody>
+                        ))}
+                    </table>
+
+                    { quotationorder && (
+                    <Quotation order={quotationorder}></Quotation>
+                    )
+                    }
+            </div>
     </div>
 
     ) 

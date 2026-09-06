@@ -49,8 +49,7 @@ export default function Navbar()
 
                     { user && (
                         <div className="flex">
-                        <button className="bg-emerald-700 px-4 py-2 rounded-3 text-white border border-2" onClick={LogoutFlow}>Logout</button>
-
+                        <button className="bg-emerald-700 px-4 py-2 rounded-xl cursor-pointer text-white border border-2" onClick={LogoutFlow}>Logout</button>
                         <div>
                         <p className="m-2">Hello! <b>{user?.email}, {user?.name}</b></p>
                         </div>
