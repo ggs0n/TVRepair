@@ -12,4 +12,14 @@ namespace TVRepair.Api.Enums
             AlreadyAccepted,
             
         }
+
+        public static class RepairOrderStatus
+        {
+            public const string OrderPlace = "OrderPlace";
+            public const string Accepted = "Accepted";
+            public const string Quotation = "Quotation";
+            public const string InProgress = "InProgress";
+            public const string Complete = "Complete";
+            public const string Declined = "Declined";
+        }
 }

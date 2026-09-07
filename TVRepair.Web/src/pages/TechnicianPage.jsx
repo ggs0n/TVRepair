@@ -1,6 +1,7 @@
 import { useUserAuth } from "../context/authenticationcontext";
 import { useState,useEffect } from "react";
 import Quotation from "./Quotation";
+import { apiUrl } from "../config/api";
 export default function TechnicianPage () {
 
     const {user} = useUserAuth();
@@ -18,7 +19,7 @@ export default function TechnicianPage () {
             TechnicianId : user?.id
         });
 
-        const response = await fetch(`http://localhost:5070/api/tvrepair/GetRepairOrderTechnician?${query}`)
+        const response = await fetch(apiUrl(`/api/tvrepair/GetRepairOrderTechnician?${query}`))
 
         const data = await response.json()
 
@@ -43,7 +44,7 @@ export default function TechnicianPage () {
             }
         ) 
 
-        const result = await fetch(`http://localhost:5070/api/tvrepair/AcceptRepairOrderTechnician?${query}`,
+        const result = await fetch(apiUrl(`/api/tvrepair/AcceptRepairOrderTechnician?${query}`),
             {
                 method : "POST"
             }
@@ -73,7 +74,7 @@ export default function TechnicianPage () {
         const form = new FormData(event.currentTarget)
         form.set("repairOrderId", selectedJob.id);
 
-        const updatejob = await fetch("http://localhost:5070/api/tvrepair/UpdateJob",{
+        const updatejob = await fetch(apiUrl("/api/tvrepair/UpdateJob"),{
             method : "POST",
             credentials : "include",
             body : form

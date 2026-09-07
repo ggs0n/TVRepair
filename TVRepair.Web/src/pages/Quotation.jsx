@@ -1,5 +1,6 @@
 import { useEffect,useState } from "react";
 import { useUserAuth } from "../context/authenticationcontext";
+import { apiUrl } from "../config/api";
 
 
 export default function Quotation({order})
@@ -11,7 +12,7 @@ export default function Quotation({order})
         event.preventDefault();
         const form = new FormData(event.currentTarget)
 
-        const response = await fetch('http://localhost:5070/api/tvrepair/SubmitQuotation', {
+        const response = await fetch(apiUrl('/api/tvrepair/SubmitQuotation'), {
             method : "POST",
             headers : {
                "Content-Type" : "application/json"

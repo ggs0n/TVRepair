@@ -30,7 +30,7 @@ export default function StatusTracker({ currentStatus, orderId }) {
 
     return (
         <div className="flex justify-center">
-            <div className="flex w-full items-start rounded-xl border border-gray-200 p-10">
+            <div className="flex mx-auto w-full max-w-[2000px] items-start rounded-xl border border-gray-200 p-10">
                 {steps.map((step, index) => {
                     const isReached = index <= currentIndex;
                     const isCompletedLine = index < currentIndex;

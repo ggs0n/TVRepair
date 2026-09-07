@@ -1,5 +1,6 @@
 import { useEffect,useState } from "react";
 import { useUserAuth } from "../context/authenticationcontext";
+import { apiUrl } from "../config/api";
 
 export default function QuotationCustomer ({orders})
 {
@@ -9,7 +10,7 @@ export default function QuotationCustomer ({orders})
 
         async function Pay()
         {
-            const paymentsummary = await fetch('http://localhost:5070/api/payment/CreateCheckoutSession', {
+            const paymentsummary = await fetch(apiUrl('/api/payment/CreateCheckoutSession'), {
                 method : "POST",
                 headers : {
                   "Content-Type" : "application/json"
@@ -30,7 +31,7 @@ export default function QuotationCustomer ({orders})
 
         async function Decline()
         {
-            const paymentsummary = await fetch('http://localhost:5070/api/payment/DeclinePayment', {
+            const paymentsummary = await fetch(apiUrl('/api/payment/DeclinePayment'), {
                 method : "POST",
                 type : {
                     type : "application/json"
@@ -51,7 +52,7 @@ export default function QuotationCustomer ({orders})
         }
 
         return (
-            <div className="justify-center grid-cols-2 flex gap-5 p-10 rounded-xl bg-gradient from-50% bg-green-800 to bg-black">
+            <div className="mx-auto w-full max-w-[2000px] justify-center grid-cols-2 flex gap-5 p-10 rounded-xl bg-gradient from-50% bg-green-800 to bg-black">
                 <div className="p-5 border-1 bg-white">
                     <div className="mb-6 shadow-lg p-4">
                     <h1 className="text-2xl font-bold">Device Information</h1>

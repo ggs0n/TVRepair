@@ -2,6 +2,7 @@ import { Link, useInRouterContext, useNavigate } from "react-router"
 import { useState, useEffect } from "react";
 import { useUserAuth } from "../context/authenticationcontext";
 import { useLocation } from "react-router";
+import { apiUrl } from "../config/api";
 
 export default function Login()
 
@@ -26,7 +27,7 @@ export default function Login()
         }
 
         const response = await fetch
-        ('http://localhost:5070/api/Authentication/loginuser', 
+        (apiUrl('/api/Authentication/loginuser'),
         {
             method : "POST",
             credentials: "include",
@@ -58,7 +59,7 @@ export default function Login()
     }
 
     return (
-    <div className="grid grid-cols-2 py-10 gap-5">
+    <div className="mx-auto w-full max-w-[2000px] grid grid-cols-2 py-10 gap-5">
         <div>
         <img src="../src/assets/tvpicturemainpage.png" width={500} height={500}></img>
         </div>

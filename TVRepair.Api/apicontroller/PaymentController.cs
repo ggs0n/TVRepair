@@ -11,10 +11,16 @@ namespace TVRepair.Api.apicontroller
     public class PaymentController : ControllerBase
     {
         private readonly IPaymentService _paymentService;
+        private readonly string _frontendUrl;
 
-        public PaymentController(IPaymentService paymentService)
+        public PaymentController(
+            IPaymentService paymentService,
+            IConfiguration configuration)
         {
             _paymentService = paymentService;
+            _frontendUrl = configuration["ApplicationUrls:Frontend"]
+                ?? throw new InvalidOperationException(
+                    "Frontend URL is missing.");
         }
 
         [Authorize]
@@ -79,7 +85,7 @@ namespace TVRepair.Api.apicontroller
             if (string.IsNullOrWhiteSpace(sessionId))
             {
                 return Redirect(
-                    "http://localhost:5173/check-status?payment=invalid");
+                    $"{_frontendUrl}/check-status?payment=invalid");
             }
 
             var result =
@@ -88,16 +94,16 @@ namespace TVRepair.Api.apicontroller
             return result.Status switch
             {
                 PaymentConfirmationStatus.Paid => Redirect(
-                    $"http://localhost:5173/check-status?payment=success&orderId={result.RepairOrderId}"),
+                    $"{_frontendUrl}/check-status?payment=success&orderId={result.RepairOrderId}"),
 
                 PaymentConfirmationStatus.NotPaid => Redirect(
-                    "http://localhost:5173/check-status?payment=failed"),
+                    $"{_frontendUrl}/check-status?payment=failed"),
 
                 PaymentConfirmationStatus.OrderNotFound => Redirect(
-                    "http://localhost:5173/check-status?payment=order-not-found"),
+                    $"{_frontendUrl}/check-status?payment=order-not-found"),
 
                 _ => Redirect(
-                    "http://localhost:5173/check-status?payment=invalid")
+                    $"{_frontendUrl}/check-status?payment=invalid")
             };
         }
     }

@@ -16,14 +16,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactApp", policy =>
         policy
-            .WithOrigins(
-    "http://localhost:5173",
-    "http://localhost:5174"
-)
+            .WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials());

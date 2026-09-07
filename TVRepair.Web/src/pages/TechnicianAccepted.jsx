@@ -1,7 +1,7 @@
 export default function TechnicianAccepted({orders})
 {
     return (
-    <div className="py-6 grid grid-cols-3 gap-6">
+    <div className="py-6 mx-auto w-full max-w-[2000px]  grid grid-cols-3 gap-6">
         <div className=" border border-gray-300 rounded-2xl px-5 p-4">
             <h1 className="text-2xl mb-4">Repair Item</h1>
             <h1>Brand / Model : {orders.brand}</h1>

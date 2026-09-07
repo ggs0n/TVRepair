@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using TVRepair.Api.data;
 using TVRepair.Api.model;
+using TVRepair.Api.Enums;
 
 namespace TVRepair.Api.services
 {
@@ -19,7 +20,7 @@ namespace TVRepair.Api.services
         {
             repairOrder.Id = Guid.NewGuid();
             repairOrder.CreatedDate = DateTime.UtcNow;
-            repairOrder.Status = "OrderPlace";
+            repairOrder.Status = RepairOrderStatus.OrderPlace;
 
             _context.RepairOrder.Add(repairOrder);
             _context.RepairOrderStatusHistory.Add(
@@ -98,9 +99,9 @@ namespace TVRepair.Api.services
                 );
             }
 
-            if (repairOrder.Status == "OrderPlaced")
+            if (repairOrder.Status == RepairOrderStatus.InProgress)
             {
-                repairOrder.Status = "Accepted";
+                repairOrder.Status = RepairOrderStatus.Accepted;
                 repairOrder.TechnicianId = technicianId;
                 _context.RepairOrderStatusHistory.Add(
                 CreateStatusHistory(repairOrder.Id, repairOrder.Status));
@@ -113,7 +114,7 @@ namespace TVRepair.Api.services
                 repairOrder
                 );
             }
-            else if (repairOrder.Status == "Accepted")
+            else if (repairOrder.Status == RepairOrderStatus.Accepted.)
             {
                 return new ApiResponse<RepairOrder>(
                 false,
@@ -187,7 +188,7 @@ namespace TVRepair.Api.services
 
             _context.Quotation.Add(quotation);
 
-            repairOrder.Status = "Quotation";
+            repairOrder.Status = RepairOrderStatus.Quotation;
             _context.RepairOrderStatusHistory.Add(
                 CreateStatusHistory(repairOrder.Id, repairOrder.Status));
 

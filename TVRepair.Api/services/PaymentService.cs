@@ -10,13 +10,22 @@ namespace TVRepair.Api.services
     {
         private readonly TVRepairDBContext _context;
         private readonly IStripeClient _stripeClient;
+        private readonly string _frontendUrl;
+        private readonly string _apiUrl;
 
         public PaymentService(
             TVRepairDBContext context,
-            IStripeClient stripeClient)
+            IStripeClient stripeClient,
+            IConfiguration configuration)
         {
             _context = context;
             _stripeClient = stripeClient;
+            _frontendUrl = configuration["ApplicationUrls:Frontend"]
+                ?? throw new InvalidOperationException(
+                    "Frontend URL is missing.");
+            _apiUrl = configuration["ApplicationUrls:Api"]
+                ?? throw new InvalidOperationException(
+                    "API URL is missing.");
         }
 
         public async Task<Quotation?> GetPaymentSummaryAsync(
@@ -50,9 +59,9 @@ namespace TVRepair.Api.services
             {
                 Mode = "payment",
                 SuccessUrl =
-                    "http://localhost:5070/api/payment/PaymentSuccess?session_id={CHECKOUT_SESSION_ID}",
+                    $"{_apiUrl}/api/payment/PaymentSuccess?session_id={{CHECKOUT_SESSION_ID}}",
                 CancelUrl =
-                    "http://localhost:5173/payment-summary?payment=cancelled",
+                    $"{_frontendUrl}/payment-summary?payment=cancelled",
                 ClientReferenceId = quotation.RepairOrderId.ToString(),
                 Metadata = new Dictionary<string, string>
                 {

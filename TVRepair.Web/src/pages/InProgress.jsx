@@ -1,7 +1,7 @@
 export default function InProgress({orders})
 {
     return (
-        <div className="grid-cols-2 flex gap-5 w-full items-start">
+        <div className="mx-auto w-full max-w-[2000px] grid-cols-2 flex gap-5 w-full items-start">
             <div className="flex-4">
                 <div className="mb-5 p-4 border border-1 border-gray-300">
                     <h1 className="font-bold">Device Information</h1>

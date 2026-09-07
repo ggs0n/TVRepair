@@ -1,5 +1,6 @@
 import { Link } from "react-router"
 import { useNavigate } from "react-router";
+import { apiUrl } from "../config/api";
 
 export default function Register()
 
@@ -13,7 +14,7 @@ export default function Register()
         const formData = new FormData(event.currentTarget);
 
         const response = await fetch
-        ('http://localhost:5070/api/Authentication/registercustomer',
+        (apiUrl('/api/Authentication/registercustomer'),
         {
             method : "POST",
             headers : {

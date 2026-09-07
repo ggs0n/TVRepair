@@ -8,6 +8,7 @@ import QuotationCustomer from "./QuotationCustomer";
 import InProgress from "./InProgress";
 import Complete from "./Complete";
 import { useSearchParams } from "react-router";
+import { apiUrl } from "../config/api";
 
 export default function CheckStatus()
 {
@@ -38,7 +39,7 @@ export default function CheckStatus()
         );
 
         const response = await fetch
-        (`http://localhost:5070/api/TVRepair/GetRepairOrder?${query}`,
+        (apiUrl(`/api/TVRepair/GetRepairOrder?${query}`),
             {
                 credentials: "include"
             }
@@ -59,8 +60,6 @@ export default function CheckStatus()
 
     return (
         <div className="py-2 px-4">
-         
-
          <div className="flex items-center justify-between mb-10">
             <div>
             <h1 className="text-3xl font-bold">Track Your Repair</h1>

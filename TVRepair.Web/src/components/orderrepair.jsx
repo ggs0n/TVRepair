@@ -12,6 +12,7 @@ import {
   Upload,
 } from "lucide-react";
 import { useUserAuth } from "../context/authenticationcontext";
+import { apiUrl } from "../config/api";
 import tvPicture from "../assets/tvpicturemainpage.png";
 import "./orderrepair.css";
 
@@ -77,7 +78,7 @@ export default function OrderRepair() {
 
     try {
       const response = await fetch(
-        "http://localhost:5070/api/TVRepair/AddRepairOrder",
+        apiUrl("/api/TVRepair/AddRepairOrder"),
         {
           method: "POST",
           credentials: "include",
