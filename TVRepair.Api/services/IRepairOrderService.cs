@@ -5,15 +5,15 @@ namespace TVRepair.Api.services
 {
     public interface IRepairOrderService
     {
-        Task<RepairOrder> AddRepairOrderAsync(RepairOrder repairOrder);
+        Task<ApiResponse<RepairOrder>> AddRepairOrderAsync(RepairOrder repairOrder);
 
-        Task<List<GetRepairOrderResponse>> GetRepairOrdersAsync(string userName);
+        Task<ApiResponse<List<GetRepairOrderResponse>>> GetRepairOrdersAsync(string userName);
 
         Task<List<RepairOrder>> GetRepairOrdersForTechnicianAsync(
             string area,
             string technicianId);
 
-        Task<RepairOrder?> AcceptRepairOrderAsync(
+        Task<ApiResponse<RepairOrder?>> AcceptRepairOrderAsync(
             Guid repairOrderId,
             string technicianId);
 

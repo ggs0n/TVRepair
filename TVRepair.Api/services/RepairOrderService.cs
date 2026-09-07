@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using TVRepair.Api.data;
 using TVRepair.Api.model;
@@ -13,7 +14,7 @@ namespace TVRepair.Api.services
             _context = context;
         }
 
-        public async Task<RepairOrder> AddRepairOrderAsync(
+        public async Task<ApiResponse<RepairOrder>> AddRepairOrderAsync(
             RepairOrder repairOrder)
         {
             repairOrder.Id = Guid.NewGuid();
@@ -22,20 +23,50 @@ namespace TVRepair.Api.services
 
             _context.RepairOrder.Add(repairOrder);
             _context.RepairOrderStatusHistory.Add(
-                CreateStatusHistory(repairOrder.Id, repairOrder.Status));
+            CreateStatusHistory(repairOrder.Id, repairOrder.Status));
+            var response = await _context.SaveChangesAsync();
 
-            await _context.SaveChangesAsync();
+            if (response == 0)
+            {
+                return new ApiResponse<RepairOrder>(
+                true,
+                StatusCodes.Status409Conflict,
+                "Failed",
+                repairOrder
+                );
+            }
 
-            return repairOrder;
+            return new ApiResponse<RepairOrder>(
+            true,
+            StatusCodes.Status200OK,
+            "Success",
+            repairOrder
+            );
         }
 
-        public async Task<List<GetRepairOrderResponse>> GetRepairOrdersAsync(
+        public async Task<ApiResponse<List<GetRepairOrderResponse>>> GetRepairOrdersAsync(
             string userName)
         {
-            return await _context.Database
+            var repairorder = await _context.Database
                 .SqlQuery<GetRepairOrderResponse>(
                     $"EXEC dbo.GetRepairOrderTechnician @UserName={userName}")
                 .ToListAsync();
+            
+            if(repairorder.Count == 0 || repairorder == null)
+            {
+                return new ApiResponse<List<GetRepairOrderResponse>>(
+                true,
+                StatusCodes.Status200OK,
+                "Success"
+                );
+            }
+
+            return new ApiResponse<List<GetRepairOrderResponse>>(
+            true,
+            StatusCodes.Status200OK,
+            "Repair orders retrieved successfully.",
+            repairorder
+            );           
         }
 
         public async Task<List<RepairOrder>> GetRepairOrdersForTechnicianAsync(
@@ -50,27 +81,54 @@ namespace TVRepair.Api.services
                 .ToListAsync();
         }
 
-        public async Task<RepairOrder?> AcceptRepairOrderAsync(
+        public async Task<ApiResponse<RepairOrder>> AcceptRepairOrderAsync(
             Guid repairOrderId,
             string technicianId)
+            
         {
             var repairOrder = await _context.RepairOrder
                 .FirstOrDefaultAsync(order => order.Id == repairOrderId);
 
             if (repairOrder == null)
             {
-                return null;
+                return new ApiResponse<RepairOrder>(
+                false,
+                StatusCodes.Status404NotFound,
+                "Repair order was not found."
+                );
             }
 
-            repairOrder.Status = "Accepted";
-            repairOrder.TechnicianId = technicianId;
-
-            _context.RepairOrderStatusHistory.Add(
+            if (repairOrder.Status == "OrderPlaced")
+            {
+                repairOrder.Status = "Accepted";
+                repairOrder.TechnicianId = technicianId;
+                _context.RepairOrderStatusHistory.Add(
                 CreateStatusHistory(repairOrder.Id, repairOrder.Status));
+                await _context.SaveChangesAsync();
 
-            await _context.SaveChangesAsync();
+                return new ApiResponse<RepairOrder>(
+                false,
+                StatusCodes.Status200OK,
+                "Success",
+                repairOrder
+                );
+            }
+            else if (repairOrder.Status == "Accepted")
+            {
+                return new ApiResponse<RepairOrder>(
+                false,
+                StatusCodes.Status409Conflict,
+                "Technician already accepted",
+                repairOrder
+                );
+            }
 
-            return repairOrder;
+            return new ApiResponse<RepairOrder>(
+                true,
+                StatusCodes.Status200OK,
+                "Order accepted successfully.",
+                repairOrder
+            );
         }
 
         public async Task<RepairOrder?> UpdateJobAsync(

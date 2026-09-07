@@ -37,10 +37,12 @@ export default function OrderRepair()
             }
         )
 
+        const result = await response.json();
+
         if (response.ok) {
         const modalElement = document.getElementById('successModal')
         Modal.getOrCreateInstance(modalElement).show()
-        navigate("/check-status")
+        navigate(`/check-status?orderId=${result.data.id}`)
 
         } else {
         const error = await response.text()

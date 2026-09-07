@@ -22,24 +22,44 @@ namespace TVRepair.Api.apicontroller
         public async Task<ActionResult> AddRepairOrder(
             [FromForm] RepairOrder request)
         {
-            await _repairOrderService.AddRepairOrderAsync(request);
 
-            return StatusCode(StatusCodes.Status201Created);
+            try {
+            var result = await _repairOrderService.AddRepairOrderAsync(request);
+            return StatusCode (
+                result.ErrorCode,
+                result
+            );
+            }
+
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
         }
 
         [HttpGet("GetRepairOrder")]
         public async Task<ActionResult<List<GetRepairOrderResponse>>>
             GetRepairOrder(string UserName)
+
         {
             if (string.IsNullOrWhiteSpace(UserName))
             {
                 return BadRequest("User name is required.");
             }
 
-            var repairOrders =
-                await _repairOrderService.GetRepairOrdersAsync(UserName);
+            try {
+            var result = await _repairOrderService.GetRepairOrdersAsync(UserName);
 
-            return Ok(repairOrders);
+            return StatusCode (
+                result.ErrorCode,
+                result
+            );
+            }
+
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
         }
 
         [HttpGet("GetRepairOrderTechnician")]
@@ -52,11 +72,17 @@ namespace TVRepair.Api.apicontroller
                 return BadRequest(
                     "Area and technician ID are required.");
             }
-
-            var repairOrders = await _repairOrderService
+            try {
+            var result = await _repairOrderService
                 .GetRepairOrdersForTechnicianAsync(Area, TechnicianID);
 
-            return Ok(repairOrders);
+            return Ok(result);
+            }
+
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
         }
 
         [HttpPost("AcceptRepairOrderTechnician")]
@@ -64,30 +90,21 @@ namespace TVRepair.Api.apicontroller
             Guid Id,
             string TechnicianId)
         {
-            if (Id == Guid.Empty)
-            {
-                return BadRequest("ID is required.");
-            }
+            try {
 
-            if (string.IsNullOrWhiteSpace(TechnicianId))
-            {
-                return BadRequest("Technician ID is required.");
-            }
-
-            var repairOrder = await _repairOrderService
+            var result = await _repairOrderService
                 .AcceptRepairOrderAsync(Id, TechnicianId);
 
-            if (repairOrder == null)
-            {
-                return NotFound("Repair order was not found.");
+            return StatusCode (
+                result.ErrorCode,
+                result
+            );
             }
 
-            return Ok(new
+            catch (Exception ex)
             {
-                id = repairOrder.Id,
-                technicianId = repairOrder.TechnicianId,
-                status = repairOrder.Status
-            });
+                return BadRequest();
+            }
         }
 
         [HttpPost("MatchRepairOrderTechnician")]
@@ -105,31 +122,46 @@ namespace TVRepair.Api.apicontroller
                 return BadRequest("Repair order ID is required.");
             }
 
-            var repairOrder =
+            try {
+            var result =
                 await _repairOrderService.UpdateJobAsync(request);
 
-            if (repairOrder == null)
+            if (result == null)
             {
                 return NotFound("Repair order was not found.");
             }
 
-            return Ok(repairOrder);
+            return Ok(result);
+            }
+
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
         }
 
         [HttpPost("SubmitQuotation")]
         public async Task<ActionResult> SubmitQuotation(
             [FromBody] SubmitQuotationRequest request)
         {
-            var submitted =
+
+            try {
+            var result =
                 await _repairOrderService.SubmitQuotationAsync(request);
 
-            if (!submitted)
+            if (!result)
             {
                 return BadRequest(
                     "The repair order was not found or already has a quotation.");
             }
 
             return Ok();
+            }
+
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
         }
     }
 }

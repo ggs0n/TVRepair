@@ -6,11 +6,16 @@ import OrderPlaced from "./OrderPlaced";
 import TechnicianAccepted from "./TechnicianAccepted";
 import QuotationCustomer from "./QuotationCustomer";
 import InProgress from "./InProgress";
+import Complete from "./Complete";
+import { useSearchParams } from "react-router";
 
 export default function CheckStatus()
 {
+    const [searchParams] = useSearchParams();
     const [orders, setOrder] = useState([]);
-    const [selectedorderid, setselectedOrderId] = useState("");
+    const [selectedorderid, setselectedOrderId] = useState(
+    searchParams.get("orderId") ?? ""
+);
     const {user} = useUserAuth();
 
     const statusmessage = {
@@ -39,11 +44,11 @@ export default function CheckStatus()
             }
         );
 
-        const data = await response.json();
+        const result = await response.json();
 
         if(response.ok)
         {
-        setOrder(data);
+        setOrder(result.data);
         }
     }
 
@@ -95,6 +100,10 @@ export default function CheckStatus()
 
             { selectedorder?.status == "InProgress" && (
             <InProgress orders={selectedorder}></InProgress>
+            )}
+
+            { selectedorder?.status == "Completed" && (
+            <Complete orders={selectedorder}></Complete>
             )}
 
 
