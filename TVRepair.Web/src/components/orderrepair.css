@@ -1,19 +1,16 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-h1,h2,p {
-  font-family: 'Inter', sans-serif;
+.home-page {
+  background:
+    radial-gradient(circle at 8% 8%, rgba(16, 185, 129, 0.09), transparent 27rem),
+    linear-gradient(180deg, #f8fafc 0%, #ffffff 75%);
 }
 
-
-.left-side-tv {
-     background:
-    linear-gradient(
-      145deg,
-      rgba(230, 247, 226, 0.86),
-      rgba(252, 252, 252, 0.96)
-    );
-}
-
-.right-side-orderform {
-    background-color:white;
+.hero-glow {
+  position: absolute;
+  width: 28rem;
+  height: 28rem;
+  top: -12rem;
+  right: -10rem;
+  border-radius: 9999px;
+  background: rgba(52, 211, 153, 0.18);
+  filter: blur(70px);
 }
