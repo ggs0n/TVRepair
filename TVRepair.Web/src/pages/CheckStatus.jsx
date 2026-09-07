@@ -59,7 +59,7 @@ export default function CheckStatus()
 
 
     return (
-        <div className="py-2 px-4">
+        <div className="py-2 px-10 max-w-500 mx-auto mt-20">
          <div className="flex items-center justify-between mb-10">
             <div>
             <h1 className="text-3xl font-bold">Track Your Repair</h1>

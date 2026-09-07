@@ -19,7 +19,12 @@ export default function TechnicianPage () {
             TechnicianId : user?.id
         });
 
-        const response = await fetch(apiUrl(`/api/tvrepair/GetRepairOrderTechnician?${query}`))
+        const response = await fetch(
+            apiUrl(`/api/tvrepair/GetRepairOrderTechnician?${query}`),
+            {
+                credentials: "include"
+            }
+        );
 
         const data = await response.json()
 
@@ -100,7 +105,7 @@ export default function TechnicianPage () {
 
     return (
 
-    <div className="p-4 m-4">
+    <div className="p-4 m-4 mx-auto w-full max-w-[1500px] mt-10">
         <div className="mb-6">
             <div className="mb-4">
                 <h1 className="text-3xl font-bold">Technician Job Tracker</h1>

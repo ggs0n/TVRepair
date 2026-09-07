@@ -99,7 +99,7 @@ namespace TVRepair.Api.services
                 );
             }
 
-            if (repairOrder.Status == RepairOrderStatus.InProgress)
+            if (repairOrder.Status == RepairOrderStatus.OrderPlace)
             {
                 repairOrder.Status = RepairOrderStatus.Accepted;
                 repairOrder.TechnicianId = technicianId;
@@ -114,7 +114,7 @@ namespace TVRepair.Api.services
                 repairOrder
                 );
             }
-            else if (repairOrder.Status == RepairOrderStatus.Accepted.)
+            else if (repairOrder.Status == RepairOrderStatus.Accepted)
             {
                 return new ApiResponse<RepairOrder>(
                 false,

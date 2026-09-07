@@ -59,13 +59,13 @@ export default function Login()
     }
 
     return (
-    <div className="mx-auto w-full max-w-[2000px] grid grid-cols-2 py-10 gap-5">
-        <div>
+    <div className="mx-auto w-full max-w-[1800px] max-h-[1500px] grid grid-cols-2 py-10 gap-5">
+        <div className="mx-auto mt-20">
         <img src="../src/assets/tvpicturemainpage.png" width={500} height={500}></img>
         </div>
 
 
-        <div className="border border-gray-300 p-4 rounded-xl mr-6 shadow-xl">
+        <div className="border border-gray-300 p-4 rounded-xl mr-6 shadow-xl ">
             <form onSubmit={LoginUser}>
             
             <div className="text-center mb-5">
