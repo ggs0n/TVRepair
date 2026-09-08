@@ -5,18 +5,26 @@ import StatusTracker from "../components/statustracker";
 import OrderPlaced from "./OrderPlaced";
 import TechnicianAccepted from "./TechnicianAccepted";
 import QuotationCustomer from "./QuotationCustomer";
+import InProgress from "./InProgress";
+import Complete from "./Complete";
+import { useSearchParams } from "react-router";
+import { apiUrl } from "../config/api";
 
 export default function CheckStatus()
 {
+    const [searchParams] = useSearchParams();
     const [orders, setOrder] = useState([]);
-    const [selectedorderid, setselectedOrderId] = useState("");
+    const [selectedorderid, setselectedOrderId] = useState(
+    searchParams.get("orderId") ?? ""
+);
     const {user} = useUserAuth();
 
     const statusmessage = {
         OrderPlace : "Your order has been placed."
     }
 
-    const selectedorder = orders.find(order => order.id === selectedorderid) ?? orders[0] ?? null;
+    const selectedorder = orders.find(order => String(order.id).toLowerCase() === String(selectedorderid).toLowerCase()
+    ) ?? null;
 
     async function LoadOrder()
     {
@@ -27,30 +35,37 @@ export default function CheckStatus()
 
         const query = new URLSearchParams(
             {
-                UserName : user.email
+                CustomerId : user.id
             }
         );
 
         const response = await fetch
-        (`http://localhost:5070/api/TVRepair/GetRepairOrder?${query}`);
+        (apiUrl(`/api/TVRepair/GetRepairOrder?${query}`),
+            {
+                credentials: "include"
+            }
+        );
 
-        const data = await response.json();
+        const result = await response.json();
 
-        if(response.ok)
-        {
-        setOrder(data);
+        if (response.ok) {
+            const loadedOrders = result.data ?? [];
+
+            setOrder(loadedOrders);
+
+            if (!selectedorderid && loadedOrders.length > 0) {
+                setselectedOrderId(loadedOrders[0].id);
+            }
         }
     }
 
     useEffect(()=> {
         LoadOrder();
-    }, [user?.email])
+    }, [user?.id])
 
 
     return (
-        <div className="py-2 px-4">
-         
-
+        <div className="py-2 px-10 max-w-500 mx-auto mt-20">
          <div className="flex items-center justify-between mb-10">
             <div>
             <h1 className="text-3xl font-bold">Track Your Repair</h1>
@@ -60,7 +75,7 @@ export default function CheckStatus()
 
             <div className="flex items-center">
             <p>Order Id = </p>
-            <select className="mb-2 m-2 p-2" onChange={event => setselectedOrderId(event.target.value)}>
+            <select className="mb-2 m-2 p-2" value={selectedorderid} onChange={event => setselectedOrderId(event.target.value)}>
                 {orders.map((order)=> (
                 <option value={order.id}>{order.id}</option>
                 ))}
@@ -87,6 +102,15 @@ export default function CheckStatus()
             { selectedorder?.status == "Quotation" && (
             <QuotationCustomer orders={selectedorder}></QuotationCustomer>
             )}
+
+            { selectedorder?.status == "InProgress" && (
+            <InProgress orders={selectedorder}></InProgress>
+            )}
+
+            { selectedorder?.status == "Completed" && (
+            <Complete orders={selectedorder}></Complete>
+            )}
+
 
 
         </div>

@@ -15,10 +15,10 @@ namespace TVRepair.Api.model
 
         public string QuotationDesc { get ; set;}
 
-        public int Amount { get;set;}
+        public decimal Amount { get;set;}
 
-        public Guid CustomerId { get ;set;}
+        public string CustomerId { get ;set;}
 
-        public Guid TechnicianId { get ;set;}
+        public string TechnicianId { get ;set;}
     }
 }

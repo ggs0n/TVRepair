@@ -1,15 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Stripe;
-using Stripe.Checkout;
-using TVRepair.Api.data;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-
+using Microsoft.AspNetCore.Mvc;
+using TVRepair.Api.data;
+using TVRepair.Api.services;
 
 namespace TVRepair.Api.apicontroller
 {
@@ -17,36 +10,43 @@ namespace TVRepair.Api.apicontroller
     [Route("api/[controller]")]
     public class PaymentController : ControllerBase
     {
-        private readonly TVRepairDBContext _context;
-        private readonly IStripeClient _stripeclient;
+        private readonly IPaymentService _paymentService;
+        private readonly string _frontendUrl;
 
-        public PaymentController(TVRepairDBContext context, IStripeClient stripeClient)
+        public PaymentController(
+            IPaymentService paymentService,
+            IConfiguration configuration)
         {
-            _context = context;
-            _stripeclient = stripeClient;
+            _paymentService = paymentService;
+            _frontendUrl = configuration["ApplicationUrls:Frontend"]
+                ?? throw new InvalidOperationException(
+                    "Frontend URL is missing.");
         }
-
 
         [Authorize]
         [HttpPost("GetPaymentSummary")]
-        public async Task <ActionResult> GetPaymentSummary ([FromBody] GetPaymentSummaryRequest request)
+        public async Task<ActionResult> GetPaymentSummary(
+            [FromBody] GetPaymentSummaryRequest request)
         {
-            if(request==null)
-            return BadRequest();
+            var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            try
+            if (customerId == null)
             {
-                var getpaymentsummary = await _context.Quotation.Where(x=>x.RepairOrderId == request.RepairOrderId).FirstOrDefaultAsync();
-                return Ok(getpaymentsummary);
+                return Unauthorized();
             }
 
-            catch(Exception ex)
+            var paymentSummary = await _paymentService
+                .GetPaymentSummaryAsync(
+                    request.RepairOrderId,
+                    customerId);
+
+            if (paymentSummary == null)
             {
-                return BadRequest(ex);
+                return NotFound("Quotation not found.");
             }
+
+            return Ok(paymentSummary);
         }
-
-
 
         [Authorize]
         [HttpPost("CreateCheckoutSession")]
@@ -56,69 +56,54 @@ namespace TVRepair.Api.apicontroller
             var customerId =
                 User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var quotation = await (
-                from q in _context.Quotation
-                join order in _context.RepairOrder
-                    on q.RepairOrderId equals order.Id
-                where q.RepairOrderId == request.RepairOrderId
-                && order.CustomerId == customerId
-                select q
-            ).SingleOrDefaultAsync();
-
-            if (quotation == null)
-                return NotFound("Quotation not found.");
-
-            var options = new SessionCreateOptions
+            if (customerId == null)
             {
-                Mode = "payment",
+                return Unauthorized();
+            }
 
-                SuccessUrl =
-                    "http://localhost:5173/check-status?payment=success",
+            var checkoutUrl = await _paymentService
+                .CreateCheckoutSessionAsync(
+                    request.RepairOrderId,
+                    customerId);
 
-                CancelUrl =
-                    "http://localhost:5173/payment-summary?payment=cancelled",
-
-                ClientReferenceId = quotation.RepairOrderId.ToString(),
-
-                Metadata = new Dictionary<string, string>
-                {
-                    ["repairOrderId"] = quotation.RepairOrderId.ToString(),
-                    ["quotationId"] = quotation.QuotationId.ToString()
-                },
-
-                LineItems = new List<SessionLineItemOptions>
-                {
-                    new()
-                    {
-                        Quantity = 1,
-
-                        PriceData = new SessionLineItemPriceDataOptions
-                        {
-                            Currency = "myr",
-
-                            // RM100 becomes 10000 sen
-                            UnitAmount = (long)quotation.Amount * 100,
-
-                            ProductData =
-                                new SessionLineItemPriceDataProductDataOptions
-                                {
-                                    Name = "TV Repair Service",
-                                    Description = quotation.QuotationDesc
-                                }
-                        }
-                    }
-                }
-            };
-
-            var service = new SessionService(_stripeclient);
-            var session = await service.CreateAsync(options);
+            if (checkoutUrl == null)
+            {
+                return NotFound("Quotation not found.");
+            }
 
             return Ok(new
             {
-                url = session.Url
+                url = checkoutUrl
             });
         }
 
+        [HttpGet("PaymentSuccess")]
+        public async Task<IActionResult> PaymentSuccess(
+            [FromQuery(Name = "session_id")] string sessionId)
+        {
+            if (string.IsNullOrWhiteSpace(sessionId))
+            {
+                return Redirect(
+                    $"{_frontendUrl}/check-status?payment=invalid");
+            }
 
+            var result =
+                await _paymentService.ConfirmPaymentAsync(sessionId);
+
+            return result.Status switch
+            {
+                PaymentConfirmationStatus.Paid => Redirect(
+                    $"{_frontendUrl}/check-status?payment=success&orderId={result.RepairOrderId}"),
+
+                PaymentConfirmationStatus.NotPaid => Redirect(
+                    $"{_frontendUrl}/check-status?payment=failed"),
+
+                PaymentConfirmationStatus.OrderNotFound => Redirect(
+                    $"{_frontendUrl}/check-status?payment=order-not-found"),
+
+                _ => Redirect(
+                    $"{_frontendUrl}/check-status?payment=invalid")
+            };
+        }
     }
 }

@@ -11,6 +11,7 @@ import Footer from './components/footer'
 import {Routes,Route} from 'react-router'
 import ForgotPassword from './pages/ForgotPassword'
 import TechnicianPage from './pages/TechnicianPage'
+import HomePageCustomer from './pages/HomepageCustomer'
 import './App.css'
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgotpassword" element = {<ForgotPassword/>} />
           <Route path="/technicianpage" element = {<TechnicianPage/>} />
+          <Route path="/welcome" element = {<HomePageCustomer/>} />
         </Routes>
       <Footer></Footer>
           

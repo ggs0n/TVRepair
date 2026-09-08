@@ -2,11 +2,11 @@ import { Link, useInRouterContext, useNavigate } from "react-router"
 import { useState, useEffect } from "react";
 import { useUserAuth } from "../context/authenticationcontext";
 import { useLocation } from "react-router";
+import { apiUrl } from "../config/api";
 
 export default function Login()
 
 {
-    
     const { user, setUser, isLogout } = useUserAuth();
     const navigate = useNavigate();
     const location = useLocation();
@@ -26,7 +26,7 @@ export default function Login()
         }
 
         const response = await fetch
-        ('http://localhost:5070/api/Authentication/loginuser', 
+        (apiUrl('/api/Authentication/loginuser'),
         {
             method : "POST",
             credentials: "include",
@@ -46,7 +46,7 @@ export default function Login()
             alert("login success");
 
             if (responsedata.customertype == 'customer')
-            navigate("/check-status");
+            navigate("/");
             else if(responsedata.customertype == 'technician')
             navigate("/technicianpage")
 
@@ -58,13 +58,13 @@ export default function Login()
     }
 
     return (
-    <div className="grid grid-cols-2 py-10 gap-5">
-        <div>
+    <div className="mx-auto w-full max-w-[1800px] max-h-[1500px] grid grid-cols-2 py-10 gap-5">
+        <div className="mx-auto mt-20">
         <img src="../src/assets/tvpicturemainpage.png" width={500} height={500}></img>
         </div>
 
 
-        <div className="border border-gray-300 p-4 rounded-xl mr-6 shadow-xl">
+        <div className="border border-gray-300 p-4 rounded-xl mr-6 shadow-xl ">
             <form onSubmit={LoginUser}>
             
             <div className="text-center mb-5">
@@ -98,7 +98,6 @@ export default function Login()
 
             <div className="flex container align-items-center gap-2 col-5">
             <button className="w-full bg-green-700 rounded-xl text-white font-bold p-2" type="submit">Login</button><br/>
-            {/* <Link to="/forgotpassword" className="btn btn-primary" >Forgot Password</Link> */}
             </div>
             
             </form>

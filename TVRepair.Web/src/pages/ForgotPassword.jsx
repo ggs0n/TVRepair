@@ -1,4 +1,5 @@
 import { replace, useNavigate } from "react-router";
+import { apiUrl } from "../config/api";
 
 export default function ForgotPassword()
 
@@ -13,7 +14,7 @@ export default function ForgotPassword()
 
         const email = formdata.get("email");
         
-        const response = await fetch("http://localhost:5070/api/auth/forgotPassword", {
+        const response = await fetch(apiUrl("/api/auth/forgotPassword"), {
             method : "POST",
             headers : {
                 "Content-Type" : "application/json"

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TVRepair.Api.data;
 using Microsoft.AspNetCore.Identity;
 using Stripe;
+using TVRepair.Api.services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,14 +16,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactApp", policy =>
         policy
-            .WithOrigins(
-    "http://localhost:5173",
-    "http://localhost:5174"
-)
+            .WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials());
@@ -31,6 +31,12 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddDbContext<TVRepairDBContext>(options =>
     options.UseSqlServer(connectionString));
+
+builder.Services.AddScoped<IRepairOrderService, RepairOrderService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<
+    IUserAuthenticationService,
+    UserAuthenticationService>();
 
 builder.Services.AddAuthorization();
 builder.Services.AddIdentityApiEndpoints<ApplicationUser>().AddEntityFrameworkStores<TVRepairDBContext>();

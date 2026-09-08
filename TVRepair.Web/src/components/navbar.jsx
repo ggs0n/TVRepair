@@ -1,64 +1,103 @@
+import { ClipboardList, LogOut, Wrench } from "lucide-react";
+import { Link, useNavigate } from "react-router";
+import { useUserAuth } from "../context/authenticationcontext";
+import logo from "../assets/logomain.png";
 
-import OrderRepair from "./orderrepair"
-import CheckStatus from "../pages/CheckStatus"
-import './navbar.css'
-import { Link, useNavigate } from "react-router"
-import { useUserAuth } from "../context/authenticationcontext"
-import { useState } from "react"
+const navigationClassName =
+  "rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950";
 
-export default function Navbar()
-{
-    const { user, setUser, Logout} = useUserAuth();
-    const navigate = useNavigate();
+export default function Navbar() {
+  const { user, Logout } = useUserAuth();
+  const navigate = useNavigate();
 
-    function LogoutFlow()
-    {
-        Logout();
+  async function LogoutFlow() {
+    await Logout();
 
-        navigate("/login", {
-            state : { message : "success logout"}
-        })
-    }
+    navigate("/login", {
+      state: { message: "Successfully logged out." },
+    });
+  }
 
-    return (
-        <>
-            <div className="flex justify-between p-2 m-2">
-                <div className="flex m-2">
-                <img src='../src/assets/logomain.png' width={50} className="m-1"></img>
-                <h1 className="mb-0 title-name">Repair<span className="text-success">Lah!</span></h1>
-                <span><b>2026</b></span>
+  return (
+    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+      <nav className="mx-auto flex min-h-18 w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+        <Link to="/" className="flex items-center gap-3" aria-label="RepairLah home">
+          <img src={logo} alt="RepairLah" className="h-11 w-11 object-contain" />
+          <div>
+            <p className="text-lg font-bold leading-none tracking-tight text-slate-950">
+              Repair<span className="text-emerald-700">Lah!</span>
+            </p>
+            <p className="mt-1 hidden text-[11px] font-medium text-slate-400 sm:block">
+              TV repair made simple
+            </p>
+          </div>
+        </Link>
+
+        <div className="flex flex-wrap items-center justify-end gap-1.5">
+          {user?.customertype === "customer" && (
+          <Link to="/" className={navigationClassName}>
+            Home
+          </Link>
+          )}
+
+          {user?.customertype === "customer" && (
+            <Link to="/check-status" className={navigationClassName}>
+              Check status
+            </Link>
+          )}
+
+          {user?.customertype === "technician" && (
+            <Link to="/technicianpage" className={navigationClassName}>
+              Check jobs
+            </Link>
+          )}
+
+          {!user && (
+            <>
+              <Link to="/login" className={navigationClassName}>
+                Log in
+              </Link>
+              <Link
+                to="/register"
+                className="ml-1 rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800"
+              >
+                Get started
+              </Link>
+            </>
+          )}
+
+          {user && (
+            <>
+              <div className="mx-1 hidden items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 sm:flex">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-700 text-white">
+                  {user.customertype === "technician" ? (
+                    <Wrench size={15} />
+                  ) : (
+                    <ClipboardList size={15} />
+                  )}
                 </div>
-                
-                <div className="gap-2 p-4 flex items-end">
-                    <Link to="/" className="bg-emerald-700 px-4 py-2 rounded-xl text-white border border-2">Home</Link>
-
-                    {user?.customertype == "customer" && (
-                    <Link to="/check-status" className="bg-emerald-700 px-4 py-2 rounded-xl text-white border border-2">Check Status</Link>
-                    )}
-
-                    {user?.customertype == "technician" && (
-                    <Link to="/technicianpage" className="bg-emerald-700 px-4 py-2 rounded-xl text-white border border-2">Check Job</Link>
-                    )}
-
-                    { !user && (
-                    <>
-                    <Link to="/login" className="bg-emerald-700 px-4 py-2 rounded-xl text-white border border-2">Login</Link>
-                    <Link to="/register" className="bg-emerald-700 px-4 py-2 rounded-xl text-white border border-2">Register</Link>
-                    </>
-                    ) }
-
-                    { user && (
-                        <div className="flex">
-                        <button className="bg-emerald-700 px-4 py-2 rounded-3 text-white border border-2" onClick={LogoutFlow}>Logout</button>
-
-                        <div>
-                        <p className="m-2">Hello! <b>{user?.email}, {user?.name}</b></p>
-                        </div>
-                        </div>                   
-                    )} 
+                <div className="max-w-40">
+                  <p className="truncate text-xs font-semibold text-slate-800">
+                    {user.name || user.email}
+                  </p>
+                  <p className="truncate text-[11px] capitalize text-slate-500">
+                    {user.customertype}
+                  </p>
                 </div>
-            </div>
-        </>
+              </div>
 
-    )
+              <button
+                className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-red-50 hover:text-red-700"
+                onClick={LogoutFlow}
+                type="button"
+              >
+                <LogOut size={16} />
+                <span className="hidden sm:inline">Log out</span>
+              </button>
+            </>
+          )}
+        </div>
+      </nav>
+    </header>
+  );
 }

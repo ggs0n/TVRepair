@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Identity;
-using TVRepair.Api.model;
 using TVRepair.Api.data;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
+using TVRepair.Api.services;
 
 namespace TVRepair.Api.apicontroller
 {
@@ -14,119 +9,92 @@ namespace TVRepair.Api.apicontroller
     [Route("api/[controller]")]
     public class AuthenticationController : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly TVRepairDBContext _dbContext;
+        private readonly IUserAuthenticationService _authenticationService;
 
-        private readonly SignInManager<ApplicationUser> _signinManager;
-
-
-        public AuthenticationController(UserManager<ApplicationUser> userManager, TVRepairDBContext dbcontext, SignInManager<ApplicationUser> signInManager)
+        public AuthenticationController(
+            IUserAuthenticationService authenticationService)
         {
-             _dbContext =  dbcontext;
-             _userManager = userManager;
-             _signinManager = signInManager;
+            _authenticationService = authenticationService;
         }
 
-
-
         [HttpPost("registercustomer")]
-        public async Task<ActionResult> RegisterCustomer(CustRegisterRequest request)
+        public async Task<ActionResult> RegisterCustomer(
+            [FromBody] CustRegisterRequest request)
         {
-            
-            if(request==null)
-            return BadRequest();
-
-            if(request.Name == null)
-            return BadRequest("Name is empty");
-
-            if(request.Password == null)
-            return BadRequest("Password is empty");
-
-            if(request.Password == null)
-            return BadRequest("Customer Type is empty");
-
-            try {
-
-            var existingUser = await _userManager.FindByEmailAsync(request.Email);
-
-            if (existingUser!=null)
-            return BadRequest("User already existed");
-
-            var usercreate = new ApplicationUser
+            if (string.IsNullOrWhiteSpace(request.Name))
             {
-                UserName = request.Name,
-                Email = request.Email,
-                CustomerType = request.CustomerType
+                return BadRequest("Name is empty");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Email))
+            {
+                return BadRequest("Email is empty");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Password))
+            {
+                return BadRequest("Password is empty");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.CustomerType))
+            {
+                return BadRequest("Customer Type is empty");
+            }
+
+            var result = await _authenticationService
+                .RegisterCustomerAsync(request);
+
+            return result.Status switch
+            {
+                UserRegistrationStatus.Success =>
+                    Ok("User created"),
+
+                UserRegistrationStatus.UserAlreadyExists =>
+                    BadRequest("User already existed"),
+
+                _ => BadRequest(
+                    "Failed to register user. Pls contact Admin")
             };
-
-            var createUserResult = await _userManager.CreateAsync(usercreate, request.Password);
-
-            if (createUserResult.Succeeded)
-            return Ok("User created");
-            else return BadRequest("Failed to register user. Pls contact Admin");
-
-            }
-
-            catch (Exception ex)
-            {
-                return BadRequest(ex);
-            }
-
         }
 
         [HttpPost("loginuser")]
-        public async Task<ActionResult> GetLoginuser(CustLoginRequest request)
+        public async Task<ActionResult> GetLoginUser(
+            [FromBody] CustLoginRequest request)
         {
-            if(request==null)
-            return BadRequest("Bad Request");
-
-            try {
-            var userresult = await _userManager.FindByEmailAsync(request.Email);
-
-            if (userresult==null)
-            return Unauthorized("Email no data");
-
-            _signinManager.AuthenticationScheme = IdentityConstants.ApplicationScheme;
-
-            var loginresult = await _signinManager.PasswordSignInAsync(
-                userresult,request.Password,request.RememberMe,lockoutOnFailure : false
-            );
-
-            if (loginresult.Succeeded)
-            return Ok(new
+            if (string.IsNullOrWhiteSpace(request.Email) ||
+                string.IsNullOrWhiteSpace(request.Password))
             {
-                id = userresult.Id,
-                email = userresult.Email,
-                name = userresult.UserName,
-                customertype = userresult?.CustomerType,
-                area = userresult?.PreferredArea
-            });
-
-            else if(loginresult.IsNotAllowed)
-            return Unauthorized("");
-
-            else return BadRequest();
-
+                return BadRequest("Email and password are required");
             }
-            catch (Exception ex)
+
+            var result = await _authenticationService.LoginAsync(request);
+
+            return result.Status switch
             {
-                return Unauthorized();
-            }
+                UserLoginStatus.Success => Ok(result.User),
+                UserLoginStatus.UserNotFound =>
+                    Unauthorized("Email no data"),
+                UserLoginStatus.NotAllowed => Unauthorized(),
+                _ => BadRequest()
+            };
         }
 
-
-        [HttpPost("logout")]
-        public async Task<ActionResult> LogoutUser ()
+        [Authorize]
+        [HttpGet("GetCurrentUser")]
+        public async Task<ActionResult> GetCurrentUser()
         {
-            try {
-            await _signinManager.SignOutAsync();
-            return Ok();
-            }
-            catch (Exception ex)
-            {
-                return Unauthorized();
-            }
+            var user = await _authenticationService
+                .GetCurrentUserAsync(User);
 
+            return user == null ? Unauthorized() : Ok(user);
+        }
+
+        [Authorize]
+        [HttpPost("logout")]
+        public async Task<ActionResult> LogoutUser()
+        {
+            await _authenticationService.LogoutAsync();
+            return Ok();
         }
     }
 }

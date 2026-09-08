@@ -1,4 +1,5 @@
 import { createContext,useContext,useState,useEffect } from "react";
+import { apiUrl } from "../config/api";
 
 
 const AuthContext = createContext(null)
@@ -15,7 +16,7 @@ export default function AuthenticationContext ( {children})
 
     async function Logout()
     {
-        const response = await fetch('http://localhost:5070/api/Authentication/logout',
+        const response = await fetch(apiUrl('/api/Authentication/logout'),
             {
                 method : "POST",
                 credentials : "include"
@@ -28,6 +29,26 @@ export default function AuthenticationContext ( {children})
         } 
         else alert("Logout failed")
     }
+
+
+    //get current user when restart page
+    useEffect(() => {
+    async function restoreUser() {
+        const response = await fetch(
+        apiUrl("/api/Authentication/GetCurrentUser"),
+        {
+            credentials: "include"
+        }
+        );
+
+        if (response.ok) {
+        const data = await response.json();
+        setUser(data);
+        }
+    }
+
+    restoreUser();
+    }, []);
 
     return (
         <AuthContext.Provider value={{
