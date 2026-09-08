@@ -51,19 +51,20 @@ export default function TechnicianPage () {
 
         const result = await fetch(apiUrl(`/api/tvrepair/AcceptRepairOrderTechnician?${query}`),
             {
-                method : "POST"
+                method : "POST",
+                credentials : "include"
             }
         )
 
-        const data = await result.json()
+        const response = await result.json()
 
         if(result.ok)
         {
             alert("Updated")
             setOrderTechnician(previousOrders =>
             previousOrders.map(order =>
-                order.id === data.id
-                    ? { ...order, ...data }
+                order.id === response.data.id
+                    ? { ...order, ...response.data }
                     : order
             )
             );
@@ -125,32 +126,32 @@ export default function TechnicianPage () {
                 </div>
             </div>
 
-            <div className="flex border border-2 overflow-x-auto rounded-lg">
+            <div className="flex border border-2 border-gray-300 overflow-x-auto rounded-lg">
                     <table className="min-w-full text-left m-2">
-                        <thead className="bg-gray-400">
-                            <th>Brand</th>
-                            <th>Area</th>
-                            <th>Username</th>
-                            <th>Status</th>
-                            <th>Order Id</th>
-                            <th>Action</th>
+                        <thead className="bg-green-200 m-4">
+                            <th className="px-6 py-3">Brand</th>
+                            <th className="px-6 py-3">Area</th>
+                            <th className="px-6 py-3">Username</th>
+                            <th className="px-6 py-3">Status</th>
+                            <th className="px-6 py-3">Order Id</th>
+                            <th className="px-6 py-3">Action</th>
                         </thead>
                         {orderlist.map((order) => (
                         <tbody key={order.id}>
                             <tr>
-                                <td>{order?.brand}</td>
-                                <td>{order?.area}</td>
-                                <td>{order?.userName}</td>
-                                <td>{order?.status}</td>
-                                <td>{order?.id}</td>
+                                <td className="px-6 py-3">{order?.brand}</td>
+                                <td className="px-6 py-3">{order?.area}</td>
+                                <td className="px-6 py-3">{order?.userName}</td>
+                                <td className="px-6 py-3">{order?.status}</td>
+                                <td className="px-6 py-3">{order?.id}</td>
                                 { order.status == "OrderPlace" && (
-                                <td>
+                                <td className="px-6 py-3">
                                     <button className="bg-green-700 p-3 m-2 rounded-xl text-white" onClick={() => AcceptJob(order.id)}>Accept Job</button>
                                 </td>
                                 )}
 
                                 { order.status == "Accepted" && (
-                                <td>
+                                <td className="px-6 py-3">
                                     <button className="bg-green-700 p-3 m-2 rounded-xl text-white" onClick={() => setQuotationorder(order)}>Add Quotation</button>
                                 </td>
                                 )} 
@@ -168,11 +169,6 @@ export default function TechnicianPage () {
                         </tbody>
                         ))}
                     </table>
-
-                    { quotationorder && (
-                    <Quotation order={quotationorder}></Quotation>
-                    )
-                    }
             </div>
         </div>
         
@@ -223,6 +219,11 @@ export default function TechnicianPage () {
         </div>
         </div>
         )}
+
+        { quotationorder && (
+            <Quotation order={quotationorder}></Quotation>
+          )
+        }
 
     </div>
 
