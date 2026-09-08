@@ -34,9 +34,11 @@ export default function Navbar() {
         </Link>
 
         <div className="flex flex-wrap items-center justify-end gap-1.5">
+          {user?.customertype === "customer" && (
           <Link to="/" className={navigationClassName}>
             Home
           </Link>
+          )}
 
           {user?.customertype === "customer" && (
             <Link to="/check-status" className={navigationClassName}>

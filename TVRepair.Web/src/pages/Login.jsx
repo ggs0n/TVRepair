@@ -7,7 +7,6 @@ import { apiUrl } from "../config/api";
 export default function Login()
 
 {
-    
     const { user, setUser, isLogout } = useUserAuth();
     const navigate = useNavigate();
     const location = useLocation();
@@ -47,7 +46,7 @@ export default function Login()
             alert("login success");
 
             if (responsedata.customertype == 'customer')
-            navigate("/check-status");
+            navigate("/");
             else if(responsedata.customertype == 'technician')
             navigate("/technicianpage")
 

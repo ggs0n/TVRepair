@@ -20,11 +20,22 @@ namespace TVRepair.Api.apicontroller
 
         [HttpPost("AddRepairOrder")]
         public async Task<ActionResult> AddRepairOrder(
-            [FromForm] RepairOrder request)
+            [FromForm] AddRepairOrderRequest request)
         {
 
             try {
-            var result = await _repairOrderService.AddRepairOrderAsync(request);
+
+            var repairOrder = new RepairOrder
+            {
+                Brand = request.Brand,
+                Area = request.Area,
+                IssueDescription = request.IssueDescription,
+                CustomerId = request.CustomerId,
+                UserName = User.Identity?.Name
+            };
+
+            var result = await _repairOrderService.AddRepairOrderAsync(repairOrder);
+
             return StatusCode (
                 result.ErrorCode,
                 result
@@ -39,16 +50,16 @@ namespace TVRepair.Api.apicontroller
 
         [HttpGet("GetRepairOrder")]
         public async Task<ActionResult<List<GetRepairOrderResponse>>>
-            GetRepairOrder(string UserName)
+            GetRepairOrder(string CustomerId)
 
         {
-            if (string.IsNullOrWhiteSpace(UserName))
+            if (string.IsNullOrWhiteSpace(CustomerId))
             {
                 return BadRequest("User name is required.");
             }
 
             try {
-            var result = await _repairOrderService.GetRepairOrdersAsync(UserName);
+            var result = await _repairOrderService.GetRepairOrdersAsync(CustomerId);
 
             return StatusCode (
                 result.ErrorCode,

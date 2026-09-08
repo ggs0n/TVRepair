@@ -46,11 +46,11 @@ namespace TVRepair.Api.services
         }
 
         public async Task<ApiResponse<List<GetRepairOrderResponse>>> GetRepairOrdersAsync(
-            string userName)
+            string CustomerId)
         {
             var repairorder = await _context.Database
                 .SqlQuery<GetRepairOrderResponse>(
-                    $"EXEC dbo.GetRepairOrderTechnician @UserName={userName}")
+                    $"EXEC dbo.GetRepairOrderTechnician @Id={CustomerId}")
                 .ToListAsync();
             
             if(repairorder.Count == 0 || repairorder == null)

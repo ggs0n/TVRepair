@@ -23,7 +23,8 @@ export default function CheckStatus()
         OrderPlace : "Your order has been placed."
     }
 
-    const selectedorder = orders.find(order => order.id === selectedorderid) ?? orders[0] ?? null;
+    const selectedorder = orders.find(order => String(order.id).toLowerCase() === String(selectedorderid).toLowerCase()
+    ) ?? null;
 
     async function LoadOrder()
     {
@@ -34,7 +35,7 @@ export default function CheckStatus()
 
         const query = new URLSearchParams(
             {
-                UserName : user.email
+                CustomerId : user.id
             }
         );
 
@@ -47,15 +48,20 @@ export default function CheckStatus()
 
         const result = await response.json();
 
-        if(response.ok)
-        {
-        setOrder(result.data);
+        if (response.ok) {
+            const loadedOrders = result.data ?? [];
+
+            setOrder(loadedOrders);
+
+            if (!selectedorderid && loadedOrders.length > 0) {
+                setselectedOrderId(loadedOrders[0].id);
+            }
         }
     }
 
     useEffect(()=> {
         LoadOrder();
-    }, [user?.email])
+    }, [user?.id])
 
 
     return (
@@ -69,7 +75,7 @@ export default function CheckStatus()
 
             <div className="flex items-center">
             <p>Order Id = </p>
-            <select className="mb-2 m-2 p-2" onChange={event => setselectedOrderId(event.target.value)}>
+            <select className="mb-2 m-2 p-2" value={selectedorderid} onChange={event => setselectedOrderId(event.target.value)}>
                 {orders.map((order)=> (
                 <option value={order.id}>{order.id}</option>
                 ))}

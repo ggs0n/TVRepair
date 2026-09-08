@@ -123,7 +123,6 @@ export default function TechnicianPage () {
                 <div className="bg-green-300">
                     <h1>Completed</h1>
                 </div>
-
             </div>
 
             <div className="flex border border-2 overflow-x-auto rounded-lg">

@@ -28,8 +28,7 @@ namespace TVRepair.Api.apicontroller
         public async Task<ActionResult> GetPaymentSummary(
             [FromBody] GetPaymentSummaryRequest request)
         {
-            var customerId =
-                User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var customerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (customerId == null)
             {
